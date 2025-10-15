@@ -3,7 +3,7 @@ import axios from "axios";
 export async function getLeetCodeContests() {
   const query = `
     query {
-      contestUpcomingContests {
+      upcomingContests {
         title
         titleSlug
         startTime
@@ -24,9 +24,9 @@ export async function getLeetCodeContests() {
         },
       }
     );
-    console.log("✅ LeetCode API response received");
+    console.log(response.data);
 
-    const contests = response.data.data.contestUpcomingContests || [];
+    const contests = response.data.data.upcomingContests || [];
     console.log("✅ Fetched LeetCode contests:", contests);
     return contests.map(c => ({
       platform: "LeetCode",
