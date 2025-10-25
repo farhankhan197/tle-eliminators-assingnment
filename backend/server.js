@@ -1,5 +1,6 @@
 import express from "express";
-import router from "./routes/contests.js";
+import leetCodeRouter from "./routes/leetcode.js";
+import codeForcesRouter from "./routes/codeforces.js";
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -7,7 +8,8 @@ const PORT = process.env.PORT || 3000;
 // Middleware
 app.use(express.json());
 app.use(express.urlencoded())
-app.use("/api", router);
+app.use("/api/leetcode", leetCodeRouter);
+app.use("/api/codeforces", codeForcesRouter);
 
 // Default route
 app.get("/", (req, res) => {
@@ -15,10 +17,18 @@ app.get("/", (req, res) => {
     status: "success",
     message: "Welcome to the LeetCode Contest Tracker API 🚀",
     endpoints: {
-      contests: "/api/contests",
+      leetcode: "/api/leetcode",
+      codeforces: "/api/codeforces",
+      atcoder: "/api/atcoder",
+      hackerrank: "/api/hackerrank",
+      codechef: "/api/codechef",
+      spoj: "/api/spoj",
+      allContests: "/api/contests",
     },
   });
 });
+
+
 
 // 404 handler
 app.use((req, res) => {

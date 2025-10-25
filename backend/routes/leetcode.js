@@ -1,10 +1,10 @@
 import express from "express";
-const router = express.Router();
+const leetCodeRouter = express.Router();
 import { getLeetCodeContests } from "../services/leetcode.js";
 
 
 
-router.get("/contests", async (req, res) => {
+leetCodeRouter.get("/contests", async (req, res) => {
   try {
     const contests = await getLeetCodeContests();
     res.json(contests);
@@ -14,4 +14,4 @@ router.get("/contests", async (req, res) => {
   }
 },);
 
-export default router;
+export default leetCodeRouter;
