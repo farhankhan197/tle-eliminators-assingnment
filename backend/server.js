@@ -1,6 +1,7 @@
 import express from "express";
 import leetCodeRouter from "./routes/leetcode.js";
 import codeForcesRouter from "./routes/codeforces.js";
+import atCoderRouter from "./routes/atcoder.js";
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -10,6 +11,7 @@ app.use(express.json());
 app.use(express.urlencoded())
 app.use("/api/leetcode", leetCodeRouter);
 app.use("/api/codeforces", codeForcesRouter);
+app.use("/api/atcoder", atCoderRouter);
 
 // Default route
 app.get("/", (req, res) => {
