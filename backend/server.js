@@ -52,9 +52,9 @@ app.use((err, req, res, next) => {
 // Start server
 app.listen(PORT, () => {
   console.log("===========================================");
-  console.log(`✅ Server started successfully!`);
-  console.log(`🌐 Running at: http://localhost:${PORT}`);
-  console.log("📡 Available endpoints:");
-  console.log(`   • GET /api/contests -> Fetch contest data`);
+  console.log(`Server started successfully!`);
+  console.log(`Running at: http://localhost:${PORT}`);
+  console.log(" Available endpoints:");
+  console.log(`• GET /api/contests -> Fetch contest data`);
   console.log("===========================================");
 });
