@@ -1,85 +1,82 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import axios from "axios";
-import ContestCard from "@/components/contestCard";
 
-export default function HomePage() {
+export default function Page() {
   const [contests, setContests] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  function convertAtCoderDuration(duration: string) {
-    if (!duration) return 0;
-    const [h, m] = duration.split(":").map(Number);
-    return h * 60 + m;
+  // Normalize LeetCode (it uses snake_case keys)
+  function normalizeLeetCode(data: any[]) {
+    return data.map((contest) => ({
+      platform: contest.platform || "LeetCode",
+      name: contest.name,
+      url: contest.url,
+      startTime: contest.start_time ? new Date(contest.start_time) : null,
+      endTime: contest.end_time ? new Date(contest.end_time) : null,
+      duration: contest.duration || null,
+    }));
+  }
+
+  // Helper to ensure everything becomes an array
+  function ensureArray(input: any) {
+    if (!input) return [];
+    return Array.isArray(input) ? input : input.data ?? [];
   }
 
   useEffect(() => {
-    async function fetchContests() {
+    async function fetchData() {
       try {
-        const lc = await axios.get("/api/leetcode");
-        const cf = await axios.get("/api/codeforces");
-        const ac = await axios.get("/api/atcoder");
-        console.log("✅ Fetched contest data from all platforms.", lc, cf, ac);
+        setLoading(true);
 
-        const leetcode = lc.data.contests?.map((c: any) => ({
-          platform: "LeetCode",
-          name: c.name,
-          url: c.url,
-          startTime: c.start_time || c.startTime,
-          durationMinutes: Math.round((c.duration || 0) / 60),
-        })) || [];
-       
-        const codeforces = cf.data.contests?.map((c: any) => ({
-          platform: "Codeforces",
-          name: c.name,
-          url: `https://codeforces.com/contest/${c.id}`,
-          startTime: c.startTime,
-          durationMinutes: c.durationMinutes,
-        })) || [];
-       
+        const [cfRes, lcRes, acRes] = await Promise.all([
+          fetch("/api/codeforces"),
+          fetch("/api/leetcode"),
+          fetch("/api/atcoder"),
+        ]);
 
-        const atcoder = ac.data.contests?.map((c: any) => ({
-          platform: "AtCoder",
-          name: c.title,
-          url: c.link,
-          startTime: c.startTime.replace("+0900", ""), // clean for Date()
-          durationMinutes: convertAtCoderDuration(c.duration),
-        })) || [];
-      
+        const codeforcesRaw = await cfRes.json();
+        const leetcodeRaw = await lcRes.json();
+        const atcoderRaw = await acRes.json();
 
-        const merged = [...leetcode, ...codeforces, ...atcoder]
-          .filter(c => c.startTime)
-          .sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime());
+        const codeforcesData = ensureArray(codeforcesRaw);
+        const leetcodeData = normalizeLeetCode(ensureArray(leetcodeRaw));
+        const atcoderData = ensureArray(atcoderRaw);
 
-        setContests(merged);
+        console.log("Codeforces:", codeforcesData);
+        console.log("LeetCode:", leetcodeData);
+        console.log("AtCoder:", atcoderData);
+
+        setContests([...codeforcesData, ...leetcodeData, ...atcoderData]);
       } catch (error) {
-        console.error("❌ Error fetching contests:", error);
+        console.error("Error fetching contest data:", error);
       } finally {
         setLoading(false);
       }
     }
 
-    fetchContests();
+    fetchData();
   }, []);
 
-  return (
-    <main className="min-h-screen bg-bg text-white px-6 py-8">
-      <h1 className="text-3xl font-bold mb-6 text-accent text-center">
-        Competitive Programming Contest Tracker ⚡
-      </h1>
+  if (loading) return <div className="text-center mt-10">Loading contests...</div>;
+  if (contests.length === 0) return <div className="text-center mt-10">No upcoming contests found.</div>;
 
-      {loading ? (
-        <p className="text-center text-gray-400">Loading contests...</p>
-      ) : (
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {contests.length === 0 ? (
-            <p className="col-span-full text-center text-gray-500">No upcoming contests found.</p>
-          ) : (
-            contests.map((contest, i) => <ContestCard key={i} {...contest} />)
-          )}
-        </div>
-      )}
-    </main>
+  return (
+    <div className="p-6">
+      <h1 className="text-2xl font-bold mb-4">Upcoming Contests</h1>
+      <ul className="space-y-4">
+        {contests.map((contest, index) => (
+          <li key={index} className="border p-4 rounded">
+            <h2 className="font-semibold">{contest.name}</h2>
+            <p>Platform: {contest.platform}</p>
+            <p>Start: {contest.startTime?.toLocaleString()}</p>
+            <p>End: {contest.endTime?.toLocaleString()}</p>
+            <a className="text-blue-500 underline" href={contest.url} target="_blank">
+              View Contest
+            </a>
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 }
