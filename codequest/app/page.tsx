@@ -4,34 +4,57 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import ContestCard from "@/components/contestCard";
 
-
 export default function HomePage() {
   const [contests, setContests] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
+  function convertAtCoderDuration(duration: string) {
+    if (!duration) return 0;
+    const [h, m] = duration.split(":").map(Number);
+    return h * 60 + m;
+  }
+
   useEffect(() => {
     async function fetchContests() {
       try {
-        const leetcode = await axios.get("/api/leetcode");
-        const codeforces = await axios.get("/api/codeforces");
-        const atcoder = await axios.get("/api/atcoder");
+        const lc = await axios.get("/api/leetcode");
+        const cf = await axios.get("/api/codeforces");
+        const ac = await axios.get("/api/atcoder");
+        console.log("✅ Fetched contest data from all platforms.", lc, cf, ac);
 
+        const leetcode = lc.data.contests?.map((c: any) => ({
+          platform: "LeetCode",
+          name: c.name,
+          url: c.url,
+          startTime: c.start_time || c.startTime,
+          durationMinutes: Math.round((c.duration || 0) / 60),
+        })) || [];
+       
+        const codeforces = cf.data.contests?.map((c: any) => ({
+          platform: "Codeforces",
+          name: c.name,
+          url: `https://codeforces.com/contest/${c.id}`,
+          startTime: c.startTime,
+          durationMinutes: c.durationMinutes,
+        })) || [];
+       
 
+        const atcoder = ac.data.contests?.map((c: any) => ({
+          platform: "AtCoder",
+          name: c.title,
+          url: c.link,
+          startTime: c.startTime.replace("+0900", ""), // clean for Date()
+          durationMinutes: convertAtCoderDuration(c.duration),
+        })) || [];
+      
 
-        const all = [
-          ...leetcode.data.contests.map((c: any) => ({ ...c, platform: "LeetCode" })),
-          ...codeforces.data.contests.map((c: any) => ({ ...c, platform: "Codeforces" })),
-          ...atcoder.data.contests.map((c: any) => ({ ...c, platform: "AtCoder" })),
-        ];
+        const merged = [...leetcode, ...codeforces, ...atcoder]
+          .filter(c => c.startTime)
+          .sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime());
 
-        // Sort by start time
-        const sorted = all.sort(
-          (a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime()
-        );
-
-        setContests(sorted);
+        setContests(merged);
       } catch (error) {
-        console.error("Error fetching contests:", error);
+        console.error("❌ Error fetching contests:", error);
       } finally {
         setLoading(false);
       }

@@ -1,43 +1,73 @@
-// routes/codeforces.js
 import express from "express";
 import fetch from "node-fetch";
 
-const codeForcesRouter = express.Router();
+const codeforcesRouter = express.Router();
 
-codeForcesRouter.get("/", async (req, res) => {
-  try {
-    const response = await fetch("https://codeforces.com/api/contest.list");
-    const data = await response.json();
-
-    if (data.status !== "OK") {
-      return res.status(500).json({
-        status: "error",
-        message: "Failed to fetch contests from Codeforces",
-      });
+async function fetchCF(url) {
+  const res = await fetch(url, {
+    headers: {
+      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+      "Accept": "application/json",
     }
+  });
 
-    const upcoming = data.result.filter(contest => contest.phase === "BEFORE");
+  return res.json();
+}
+
+codeforcesRouter.get("/", async (req, res) => {
+  try {
+    const data = await fetchCF("https://codeforces.com/api/contest.list");
+
+    const contests = data.result
+      .filter(c => c.phase === "BEFORE")
+      .map(c => ({
+        name: c.name,
+        url: `https://codeforces.com/contest/${c.id}`,
+        platform: "codeforces",
+        startTime: c.startTimeSeconds * 1000,   // convert to UNIX ms
+        duration: c.durationSeconds            // already seconds
+      }));
 
     res.status(200).json({
       status: "success",
-      source: "Codeforces",
-      count: upcoming.length,
-      contests: upcoming.map(contest => ({
-        id: contest.id,
-        name: contest.name,
-        startTime: new Date(contest.startTimeSeconds * 1000).toISOString(),
-        durationMinutes: contest.durationSeconds / 60,
-        type: contest.type,
-        preparedBy: contest.preparedBy || "Unknown",
-      })),
+      platform: "codeforces",
+      count: contests.length,
+      data: contests,
     });
-  } catch (error) {
-    console.error("Error fetching Codeforces contests:", error);
-    res.status(500).json({
-      status: "error",
-      message: "Internal server error while fetching Codeforces contests",
-    });
+
+    console.log(`✅ Codeforces normalized: ${contests.length} contests`);
+  } catch (err) {
+    console.error("❌ Codeforces fetch failed, retrying once...");
+
+    try {
+      // Retry once with slight delay
+      await new Promise(r => setTimeout(r, 500));
+      const data = await fetchCF("https://codeforces.com/api/contest.list");
+
+      const contests = data.result
+        .filter(c => c.phase === "BEFORE")
+        .map(c => ({
+          name: c.name,
+          url: `https://codeforces.com/contest/${c.id}`,
+          platform: "codeforces",
+          startTime: c.startTimeSeconds * 1000,
+          duration: c.durationSeconds
+        }));
+
+      return res.status(200).json({
+        status: "success",
+        platform: "codeforces",
+        count: contests.length,
+        data: contests,
+      });
+    } catch (e) {
+      console.error("❌ Retry also failed:", e);
+      return res.status(500).json({
+        status: "error",
+        message: "Codeforces API unavailable — try again later",
+      });
+    }
   }
 });
 
-export default codeForcesRouter;
+export default codeforcesRouter;

@@ -8,7 +8,11 @@ const app = express();
 const PORT = process.env.PORT || 8000;
 
 // Enable CORS for all routes
-
+app.use(cors(
+  {
+    origin: "http://localhost:3000",
+  }
+));
 // Middleware
 app.use(express.json());
 app.use(express.urlencoded())
