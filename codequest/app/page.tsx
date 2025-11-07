@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import ContestCard from "@/components/contestCard";
 
+
 export default function HomePage() {
   const [contests, setContests] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -11,11 +12,11 @@ export default function HomePage() {
   useEffect(() => {
     async function fetchContests() {
       try {
-        const [leetcode, codeforces, atcoder] = await Promise.all([
-          axios.get("http://localhost:3000/api/contests"),
-          axios.get("http://localhost:3000/api/codeforces"),
-          axios.get("http://localhost:3000/api/atcoder"),
-        ]);
+        const leetcode = await axios.get("/api/leetcode");
+        const codeforces = await axios.get("/api/codeforces");
+        const atcoder = await axios.get("/api/atcoder");
+
+
 
         const all = [
           ...leetcode.data.contests.map((c: any) => ({ ...c, platform: "LeetCode" })),

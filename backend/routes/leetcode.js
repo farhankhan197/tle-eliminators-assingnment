@@ -4,7 +4,7 @@ import { getLeetCodeContests } from "../services/leetcode.js";
 
 
 
-leetCodeRouter.get("/contests", async (req, res) => {
+leetCodeRouter.get("/", async (req, res) => {
   try {
     const contests = await getLeetCodeContests();
     res.json(contests);
