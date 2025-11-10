@@ -14,9 +14,7 @@ function normalizeCodeforces(data: any[]) {
     name: contest.name,
     url: `https://codeforces.com/contest/${contest.id}`,
     startTime: contest.startTime ? new Date(contest.startTime) : null,
-    endTime: contest.startTime && contest.duration
-      ? new Date((contest.startTime/1000 + contest.duration))
-      : null,
+    endTime: new Date(contest.startTime + contest.duration * 1000),
     duration: contest.durationSeconds ?? null,
   }));
 }
@@ -28,7 +26,7 @@ function normalizeAtCoder(data: any[]) {
     name: contest.title || contest.name,
     url: `https://atcoder.jp/contests/${contest.id}`,
     startTime: contest.startTime ? new Date(contest.startTime) : null,
-    endTime: contest.endTime ? new Date((contest.startTime +contest.duration)*1000) : null,
+    endTime: new Date((new Date(contest.startTime)).getTime() + contest.duration * 1000),
     duration: contest.duration ?? null,
   }));
 }
@@ -41,7 +39,7 @@ function normalizeAtCoder(data: any[]) {
       name: contest.name,
       url: contest.url,
       startTime: contest.startTime ? new Date(contest.startTime) : null,
-      endTime: contest.end_time ? new Date(contest.StartTime) : null,
+      endTime: new Date(new Date(contest.startTime).getTime() + contest.durationMinutes * 60 * 1000),
       duration: contest.duration || null,
     }));
   }
