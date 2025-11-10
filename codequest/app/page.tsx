@@ -6,14 +6,42 @@ export default function Page() {
   const [contests, setContests] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
+
+  // Normalize Codeforces (CF uses unix seconds)
+function normalizeCodeforces(data: any[]) {
+  return data.map(contest => ({
+    platform: "Codeforces",
+    name: contest.name,
+    url: `https://codeforces.com/contest/${contest.id}`,
+    startTime: contest.startTime ? new Date(contest.startTime) : null,
+    endTime: contest.startTime && contest.duration
+      ? new Date((contest.startTime/1000 + contest.duration))
+      : null,
+    duration: contest.durationSeconds ?? null,
+  }));
+}
+
+// Normalize AtCoder (many APIs return unix seconds)
+function normalizeAtCoder(data: any[]) {
+  return data.map(contest => ({
+    platform: "AtCoder",
+    name: contest.title || contest.name,
+    url: `https://atcoder.jp/contests/${contest.id}`,
+    startTime: contest.startTime ? new Date(contest.startTime) : null,
+    endTime: contest.endTime ? new Date((contest.startTime +contest.duration)*1000) : null,
+    duration: contest.duration ?? null,
+  }));
+}
+
+
   // Normalize LeetCode (it uses snake_case keys)
   function normalizeLeetCode(data: any[]) {
     return data.map((contest) => ({
       platform: contest.platform || "LeetCode",
       name: contest.name,
       url: contest.url,
-      startTime: contest.start_time ? new Date(contest.start_time) : null,
-      endTime: contest.end_time ? new Date(contest.end_time) : null,
+      startTime: contest.startTime ? new Date(contest.startTime) : null,
+      endTime: contest.end_time ? new Date(contest.StartTime) : null,
       duration: contest.duration || null,
     }));
   }
@@ -39,9 +67,22 @@ export default function Page() {
         const leetcodeRaw = await lcRes.json();
         const atcoderRaw = await acRes.json();
 
-        const codeforcesData = ensureArray(codeforcesRaw);
+        console.log("Raw contest data fetched:", {  
+          codeforces: codeforcesRaw,    
+          leetcode: leetcodeRaw,
+          atcoder: atcoderRaw,
+        });
+
+       
+        const codeforcesData = normalizeCodeforces(ensureArray(codeforcesRaw));
         const leetcodeData = normalizeLeetCode(ensureArray(leetcodeRaw));
-        const atcoderData = ensureArray(atcoderRaw);
+        const atcoderData = normalizeAtCoder(ensureArray(atcoderRaw));
+
+        console.log("Fetched contest data:", {
+          codeforces: codeforcesData,
+          leetcode: leetcodeData,
+          atcoder: atcoderData,
+        });
 
         console.log("Codeforces:", codeforcesData);
         console.log("LeetCode:", leetcodeData);
