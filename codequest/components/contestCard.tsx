@@ -2,7 +2,21 @@
 import { motion } from "framer-motion";
 import { Calendar, Clock } from "lucide-react";
 
-export default function ContestCard({ name, platform, startTime, duration, link }) {
+type CardProps = {
+  name: string;
+  platform: string;
+  startTime: string;
+  duration: string;
+  link: string;
+};
+
+export default function ContestCard({
+  name,
+  platform,
+  startTime,
+  duration,
+  link,
+}: CardProps) {
   return (
     <motion.a
       href={link}
