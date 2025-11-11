@@ -24,8 +24,8 @@ codeforcesRouter.get("/", async (req, res) => {
         name: c.name,
         url: `https://codeforces.com/contest/${c.id}`,
         platform: "codeforces",
-        startTime: c.startTimeSeconds * 1000,   // convert to UNIX ms
-        duration: c.durationSeconds            // already seconds
+        startTime: c.startTimeSeconds * 1000,   
+        duration: c.durationSeconds           
       }));
 
     res.status(200).json({
