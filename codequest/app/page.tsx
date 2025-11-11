@@ -1,5 +1,6 @@
 "use client";
 
+import { cn } from "@/utils/cn";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
@@ -113,9 +114,9 @@ export default function Page() {
     const hr = Math.floor(min / 60);
     const day = Math.floor(hr / 24);
 
-    if (day >= 1) return `${day}d ${hr % 24}h`;
-    if (hr >= 1) return `${hr}h ${min % 60}m`;
-    if (min >= 1) return `${min}m`;
+    if (day >= 1) return `${day}d ${hr % 24}h ${min % 60}m ${sec % 60}s`;
+    if (hr >= 1) return `${hr}h ${min % 60}m ${sec % 60}s`;
+    if (min >= 1) return `${min}m ${sec % 60}s`;
     return `${sec}s`;
   }
 
@@ -125,7 +126,7 @@ export default function Page() {
     if (diff < 6 *60 * 60 * 1000) return "text-red-400 font-semibold"; // < 1 day
     if (diff < 24 * 60 * 60 * 1000) return "text-orange-400 font-medium"; // < 1 day
     if (diff < 3* 24 * 60 * 60 * 1000) return "text-yellow-400 font-medium"; // < 3 days
-    return "text-green-400 font-medium"; // > 3 days
+    return "text-white font-medium"; // > 3 days
   }
 
   // Live timer rerender
@@ -190,8 +191,11 @@ export default function Page() {
                 Starts: {c.startTime.toLocaleString()}
               </p>
 
-              <p className={`mt-1 text-sm ${countdownColor(c.startTime)}`}>
-                ⏳ {formatCountdown(c.startTime)}
+              <p className={`mt-1 text-sm text-zinc-500`}>
+                Time Remaining : 
+                <span className={cn("ml-1 ", countdownColor(c.startTime))}>
+                  {formatCountdown(c.startTime)}
+                  </span>
               </p>
 
               <div className="flex justify-end gap-4 mt-4 text-sm">
