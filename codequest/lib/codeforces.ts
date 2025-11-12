@@ -18,7 +18,5 @@ export async function getCodeforcesContests() {
       duration: c.durationSeconds,
     }));
 
-//   console.log(contests);
-
   return contests;
 }

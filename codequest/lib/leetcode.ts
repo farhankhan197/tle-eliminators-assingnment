@@ -33,6 +33,7 @@ export async function getLeetCodeContests() {
 
     const contests = response.data?.data?.upcomingContests || [];
 
+
     const returnValue = contests.map((c) => ({
       platform: "LeetCode",
       name: c.title,

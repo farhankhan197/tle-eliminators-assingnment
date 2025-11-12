@@ -16,86 +16,16 @@ export default function Page() {
   const [contests, setContests] = useState<Contest[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
-  const [platform, setPlatform] = useState<string>("All");
-
-  // Normalize Codeforces
-  function normalizeCodeforces(data: any[]): Contest[] {
-    return data.map((c) => {
-      const start = c.startTime ? new Date(c.startTime) : new Date(NaN);
-      const end = c.duration
-        ? new Date(start.getTime() + c.duration)
-        : new Date(NaN);
-
-      return {
-        platform: "Codeforces",
-        name: c.name,
-        url: `https://codeforces.com/contest/${c.id}`,
-        startTime: start,
-        endTime: end,
-      };
-    });
-  }
-
-  // Normalize AtCoder
-  function normalizeAtCoder(data: any[]): Contest[] {
-    return data.map((c) => {
-      const start = c.startTime ? new Date(c.startTime) : new Date(NaN);
-      const end = c.duration
-        ? new Date(start.getTime() + c.duration * 1000)
-        : new Date(NaN);
-
-      return {
-        platform: "atcoder",
-        name: c.title ?? c.name,
-        url: `https://atcoder.jp/contests/${c.id}`,
-        startTime: start,
-        endTime: end,
-      };
-    });
-  }
-
-  // Normalize LeetCode
-  function normalizeLeetCode(data: any[]): Contest[] {
-    return data.map((c) => {
-      const start = c.startTime ? new Date(c.startTime) : new Date(NaN);
-      const end = c.durationMinutes
-        ? new Date(start.getTime() + c.durationMinutes * 60 * 1000)
-        : new Date(NaN);
-
-      return {
-        platform: "leetcode",
-        name: c.name,
-        url: c.url,
-        startTime: start,
-        endTime: end,
-      };
-    });
-  }
-
-  function ensureArray(input: any): any[] {
-    return Array.isArray(input) ? input : input?.data ?? [];
-  }
+  const [platform, setPlatform] = useState<string>("all");
 
   useEffect(() => {
     async function fetchData() {
       try {
-        const [cfRes, lcRes, acRes] = await Promise.all([
-          fetch("/api/codeforces"),
-          fetch("/api/leetcode"),
-          fetch("/api/atcoder"),
-        ]);
-
-        const codeforcesData = normalizeCodeforces(ensureArray(await cfRes.json()));
-        const leetcodeData = normalizeLeetCode(ensureArray(await lcRes.json()));
-        const atcoderData = normalizeAtCoder(ensureArray(await acRes.json()));
-
-        console.log("codeforces data normalised : ",codeforcesData)
-
-        const all = [...codeforcesData, ...leetcodeData, ...atcoderData]
-          .filter((c) => !isNaN(c.startTime.getTime()))
-          .sort((a, b) => a.startTime.getTime() - b.startTime.getTime());
-        console.log("all contests combined : ",all)
-        setContests(all);
+        setLoading(true);
+        const res = await fetch(`/api/get-contests?platform=${[platform]}`);
+        const data = await res.json();
+        console.log("all contests combined : ", data);
+        setContests(data);
       } catch (err) {
         console.error(err);
       } finally {
@@ -105,7 +35,10 @@ export default function Page() {
     fetchData();
   }, []);
 
+
   function formatCountdown(date: Date): string {
+    console.log("Date : " + date);
+    
     const diff = date.getTime() - Date.now();
     if (diff <= 0) return "Live / Started";
 
@@ -123,9 +56,9 @@ export default function Page() {
   function countdownColor(date: Date): string {
     const diff = date.getTime() - Date.now();
     if (diff <= 0) return "text-red-400 font-semibold";
-    if (diff < 6 *60 * 60 * 1000) return "text-red-400 font-semibold"; // < 1 day
+    if (diff < 6 * 60 * 60 * 1000) return "text-red-400 font-semibold"; // < 1 day
     if (diff < 24 * 60 * 60 * 1000) return "text-orange-400 font-medium"; // < 1 day
-    if (diff < 3* 24 * 60 * 60 * 1000) return "text-yellow-400 font-medium"; // < 3 days
+    if (diff < 3 * 24 * 60 * 60 * 1000) return "text-yellow-400 font-medium"; // < 3 days
     return "text-white font-medium"; // > 3 days
   }
 
@@ -137,18 +70,22 @@ export default function Page() {
   }, []);
 
   function toGoogleDate(date: Date): string {
-    return date.toISOString().replace(/[-:]/g, "").replace(/\.\d+Z$/, "Z");
+    return date
+      .toISOString()
+      .replace(/[-:]/g, "")
+      .replace(/\.\d+Z$/, "Z");
   }
 
   function getCalendarLink(c: Contest): string {
     return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(
       c.name
-    )}&dates=${toGoogleDate(c.startTime)}/${toGoogleDate(c.endTime)}&location=${encodeURIComponent(
-      c.url
-    )}`;
+    )}&dates=${toGoogleDate(c.startTime)}/${toGoogleDate(
+      c.endTime
+    )}&location=${encodeURIComponent(c.url)}`;
   }
 
-  if (loading) return <div className="text-center mt-10">Loading contests...</div>;
+  if (loading)
+    return <div className="text-center mt-10">Loading contests...</div>;
 
   return (
     <div className="p-6 text-white max-w-4xl mx-auto">
@@ -175,11 +112,14 @@ export default function Page() {
       </div>
 
       <div className="space-y-4">
-        {contests
+        {contests && contests
           .filter((c) => c.name.toLowerCase().includes(search.toLowerCase()))
-          .filter((c) => platform === "All" || c.platform === platform)
+          .filter((c) => platform === "all" || c.platform === platform)
           .map((c, i) => (
-            <div key={i} className="p-5 rounded-lg bg-zinc-800 border border-zinc-700 shadow">
+            <div
+              key={i}
+              className="p-5 rounded-lg bg-zinc-800 border border-zinc-700 shadow"
+            >
               <div className="flex justify-between items-center">
                 <h2 className="text-lg font-semibold">{c.name}</h2>
                 <span className="text-xs px-2 py-1 rounded bg-zinc-700 text-zinc-300 capitalize">
@@ -188,21 +128,29 @@ export default function Page() {
               </div>
 
               <p className="text-sm text-zinc-300 mt-2">
-                Starts: {c.startTime.toLocaleString()}
+                Starts: {c?.startTime.toLocaleString()}
               </p>
 
               <p className={`mt-1 text-sm text-zinc-500`}>
-                Time Remaining : 
-                <span className={cn("ml-1 ", countdownColor(c.startTime))}>
-                  {formatCountdown(c.startTime)}
-                  </span>
+                Time Remaining :
+                <span className={cn("ml-1 ", countdownColor(c?.startTime))}>
+                  {formatCountdown(c?.startTime)}
+                </span>
               </p>
 
               <div className="flex justify-end gap-4 mt-4 text-sm">
-                <Link href={c.url} target="_blank" className="text-blue-400 hover:underline">
+                <Link
+                  href={c.url}
+                  target="_blank"
+                  className="text-blue-400 hover:underline"
+                >
                   Open
                 </Link>
-                <Link href={getCalendarLink(c)} target="_blank" className="text-green-400 hover:underline">
+                <Link
+                  href={getCalendarLink(c)}
+                  target="_blank"
+                  className="text-green-400 hover:underline"
+                >
                   Add to Calendar
                 </Link>
               </div>

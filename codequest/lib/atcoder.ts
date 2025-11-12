@@ -5,7 +5,7 @@ export async function getAtCoderContests() {
   const html = await response.text();
   const $ = cheerio.load(html);
 
-  const contests = [];
+  const contests: Array<Record<string, any>> = [];
 
   // Parse upcoming contests
   $("#contest-table-upcoming tbody tr").each((_, el) => {
@@ -34,9 +34,6 @@ export async function getAtCoderContests() {
       startTime,
       duration,
     });
-
-    console.log(contests);
   });
+  return contests;
 }
-
-getAtCoderContests();
