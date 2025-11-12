@@ -1,14 +1,22 @@
-export function NormalizeData(platform, data) {
-    const d = []
+export function NormalizeData(platform: string, data: any) {
+  const d = [];
   if (platform == "leetcode") {
-    const leetcode = data.map((c) => {
-      const start = c.startTime ? new Date(c.startTime) : new Date(NaN);
-      const end = c.durationMinutes
-        ? new Date(start.getTime() + c.durationMinutes * 60 * 1000)
-        : new Date(NaN);
+    const leetcode = data.map((c: any) => {
+      const start = c.startTime
+          ? new Date(c.startTime).toLocaleDateString("en-US", {
+              day: "2-digit",
+              month: "2-digit",
+              year: "numeric",
+              hour: "2-digit",
+              minute: "2-digit",
+            })
+          : new Date(NaN);
+        const end = c.duration
+          ? new Date(new Date(start).getTime() + c.duration * 1000)
+          : new Date(NaN);
 
       console.log("------------------------------------------");
-      console.log("LEETCODE" + end);
+      console.log("LEETCODE" + start);
 
       return {
         platform: "leetcode",
@@ -19,45 +27,67 @@ export function NormalizeData(platform, data) {
       };
     });
 
-    d.push(leetcode)
+    d.push(leetcode);
     console.log(d);
-    
   }
 
   if (platform == "atcoder") {
-     d.push(data.map((c) => {
-      const start = c.startTime ? new Date(c.startTime) : new Date(NaN);
-      const end = c.duration
-        ? new Date(start.getTime() + c.duration * 1000)
-        : new Date(NaN);
+    d.push(
+      data.map((c: any) => {
+        const start = c.startTime
+          ? new Date(c.startTime).toLocaleDateString("en-US", {
+              day: "2-digit",
+              month: "2-digit",
+              year: "numeric",
+              hour: "2-digit",
+              minute: "2-digit",
+            })
+          : new Date(NaN);
+        const end = c.duration
+          ? new Date(new Date(start).getTime() + c.duration * 1000)
+          : new Date(NaN);
 
-      console.log("------------------------------------------");
-      console.log("ATCODER" + end);
+        console.log("------------------------------------------");
+        console.log("ATCODER" + start);
 
-      return {
-        platform: "atcoder",
-        name: c.title ?? c.name,
-        url: `https://atcoder.jp/contests/${c.id}`,
-        startTime: start,
-        endTime: end,
-      };
-    }))
+        return {
+          platform: "atcoder",
+          name: c.title ?? c.name,
+          url: `https://atcoder.jp/contests/${c.id}`,
+          startTime: start,
+          endTime: end,
+        };
+      })
+    );
   }
   if (platform == "codeforces") {
-    d.push(data.map((c) => {
-      const start = c.startTime ? new Date(c.startTime) : new Date(NaN);
-      const end = c.duration
-        ? new Date(start.getTime() + c.duration)
-        : new Date(NaN);
+    d.push(
+      data.map((c: any) => {
+        const start = c.startTime
+          ? new Date(c.startTime).toLocaleDateString("en-US", {
+              day: "2-digit",
+              month: "2-digit",
+              year: "numeric",
+              hour: "2-digit",
+              minute: "2-digit",
+            })
+          : new Date(NaN);
+        const end = c.duration
+          ? new Date(new Date(start).getTime() + c.duration * 1000)
+          : new Date(NaN);
 
-      return {
-        platform: "Codeforces",
-        name: c.name,
-        url: `https://codeforces.com/contest/${c.id}`,
-        startTime: start,
-        endTime: end,
-      };
-    }))
+        console.log("------------------------------------------");
+        console.log("Codeforces" + start);
+
+        return {
+          platform: "Codeforces",
+          name: c.name,
+          url: `https://codeforces.com/contest/${c.id}`,
+          startTime: start,
+          endTime: end,
+        };
+      })
+    );
   }
-  return d[0]
+  return d[0];
 }

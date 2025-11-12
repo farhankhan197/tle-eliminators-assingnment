@@ -7,10 +7,9 @@ export async function getCodeforcesContests() {
   });
 
   const data = await res.json();
-
   const contests = data.result
-    .filter((c) => c.phase === "BEFORE")
-    .map((c) => ({
+  .filter((c: any) => c.phase === "BEFORE")
+    .map((c: any) => ({
       name: c.name,
       url: `https://codeforces.com/contest/${c.id}`,
       platform: "codeforces",

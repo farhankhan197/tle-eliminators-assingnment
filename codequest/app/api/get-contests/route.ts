@@ -35,7 +35,7 @@ export async function GET(request: NextRequest) {
         ...NormalizeData("atcoder", atCoderContests),
         ...NormalizeData("codeforces", codeforcesContests),
       ];
-      constests.push(normalizedContests);
+      constests.push(...normalizedContests);
     }
 
     return NextResponse.json(constests);

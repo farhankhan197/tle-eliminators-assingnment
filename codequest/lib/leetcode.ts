@@ -34,7 +34,7 @@ export async function getLeetCodeContests() {
     const contests = response.data?.data?.upcomingContests || [];
 
 
-    const returnValue = contests.map((c) => ({
+    const returnValue = contests.map((c: any) => ({
       platform: "LeetCode",
       name: c.title,
       url: `https://leetcode.com/contest/${c.titleSlug}`,
@@ -44,7 +44,7 @@ export async function getLeetCodeContests() {
 
     return returnValue;
   } catch (err) {
-    console.error("❌ LeetCode API Error:", err.message);
+    console.error("❌ LeetCode API Error:", err);
     return [];
   }
 }
