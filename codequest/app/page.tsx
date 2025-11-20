@@ -1,12 +1,20 @@
 "use client";
 
+import { authClient } from "@/lib/auth-client";
 import { formatDate } from "@/lib/utils";
 import { cn } from "@/utils/cn";
+import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { motion } from "framer-motion";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 
 type Contest = {
-  platform: "Codeforces" | "atcoder" | "leetcode";
+  platform: "codeforces" | "atcoder" | "leetcode";
   name: string;
   url: string;
   startTime: Date;
@@ -18,12 +26,13 @@ export default function Page() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [platform, setPlatform] = useState<string>("all");
+  const { data: session } = authClient.useSession();
 
   useEffect(() => {
     async function fetchData() {
       try {
         setLoading(true);
-        const res = await fetch(`/api/get-contests?platform=${[platform]}`);
+        const res = await fetch(`/api/get-contests?platform=${platform}`);
         const data = await res.json();
         console.log("all contests combined : ", data);
         setContests(data);
@@ -34,11 +43,9 @@ export default function Page() {
       }
     }
     fetchData();
-  }, []);
+  }, [platform]);
 
   function formatCountdown(date: Date): string {
-    console.log("Date : " + date);
-
     const diff = new Date(date).getTime() - Date.now();
     if (diff <= 0) return "Live / Started";
 
@@ -87,7 +94,10 @@ export default function Page() {
   if (loading)
     return (
       <div className="p-6 text-white max-w-4xl mx-auto">
-        <h1 className="text-2xl font-bold mb-6">Upcoming Contests</h1>
+        <div className="flex justify-between">
+          <h1 className="text-2xl font-bold mb-6">Upcoming Contests</h1>
+          <div className="size-10 rounded-xl bg-zinc-600 animate-pulse " />
+        </div>
 
         <div className="flex flex-col md:flex-row gap-3 mb-6">
           <input
@@ -103,26 +113,67 @@ export default function Page() {
             className="px-3 py-2 bg-zinc-800 border border-zinc-700 rounded text-sm"
           >
             <option value="All">All Platforms</option>
-            <option value="Codeforces">Codeforces</option>
+            <option value="codeforces">Codeforces</option>
             <option value="atcoder">AtCoder</option>
             <option value="leetcode">LeetCode</option>
           </select>
         </div>
         <div className="flex gap-3 flex-col">
-
-        <div className="bg-zinc-600 animate-pulse h-50 rounded-lg w-full"></div>
-        <div className="bg-zinc-600 animate-pulse h-50 rounded-lg w-full"></div>
-        <div className="bg-zinc-600 animate-pulse h-50 rounded-lg w-full"></div>
-        <div className="bg-zinc-600 animate-pulse h-50 rounded-lg w-full"></div>
-        <div className="bg-zinc-600 animate-pulse h-50 rounded-lg w-full"></div>
-        <div className="bg-zinc-600 animate-pulse h-50 rounded-lg w-full"></div>
+          {Array.from({ length: 6 }).map((_, idx) => (
+            <div
+              key={idx}
+              className="bg-zinc-600 animate-pulse h-50 rounded-lg w-full"
+            ></div>
+          ))}
         </div>
       </div>
     );
 
   return (
     <div className="p-6 text-white max-w-4xl mx-auto">
-      <h1 className="text-2xl font-bold mb-6">Upcoming Contests</h1>
+      <div className="flex justify-between">
+        <h1 className="text-2xl font-bold mb-6">Upcoming Contests</h1>
+        <Popover>
+          <PopoverTrigger>
+            <motion.div
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+              className=" rounded-xl border-2 border-zinc-800 cursor-pointer"
+            >
+              {session?.user ? (
+                <Image
+                  src={session?.user.image || ""}
+                  alt={session?.user.id || "avatar"}
+                  height={100}
+                  width={100}
+                  className="rounded-xl size-10"
+                />
+              ) : (
+                <Link href={"/auth/login"} className="">
+                  Login
+                </Link>
+              )}
+            </motion.div>
+          </PopoverTrigger>
+          <PopoverContent
+            align="end"
+            className="bg-zinc-700 flex flex-col gap-2 p-1"
+          >
+            <Link
+              href={`/profile/${session?.user.id}`}
+              className="text-lg tracking-tight hover:bg-zinc-600 cursor-pointer p-1 pl-3 rounded-md text-zinc-300"
+            >
+              Profile
+            </Link>
+            <span
+              onClick={async () => authClient.signOut()}
+              className="text-lg tracking-tight hover:bg-zinc-600 cursor-pointer p-1 pl-3 rounded-md text-zinc-300"
+            >
+              Logout
+            </span>
+          </PopoverContent>
+        </Popover>
+      </div>
 
       <div className="flex flex-col md:flex-row gap-3 mb-6">
         <input
@@ -137,8 +188,8 @@ export default function Page() {
           onChange={(e) => setPlatform(e.target.value)}
           className="px-3 py-2 bg-zinc-800 border border-zinc-700 rounded text-sm"
         >
-          <option value="All">All Platforms</option>
-          <option value="Codeforces">Codeforces</option>
+          <option value="all">All Platforms</option>
+          <option value="codeforces">Codeforces</option>
           <option value="atcoder">AtCoder</option>
           <option value="leetcode">LeetCode</option>
         </select>
@@ -148,9 +199,9 @@ export default function Page() {
         {contests &&
           contests
             .filter((c) => c.name?.toLowerCase().includes(search.toLowerCase()))
-            ?.filter((c) => platform === "all" || c.platform === platform)
             .map((c, i) => (
-              <div
+              <motion.div
+                whileHover={{ scale: 1.01, borderRadius: 0 }}
                 key={i}
                 className="p-5 rounded-lg bg-zinc-800 border border-zinc-700 shadow"
               >
@@ -188,7 +239,7 @@ export default function Page() {
                     Add to Calendar
                   </Link>
                 </div>
-              </div>
+              </motion.div>
             ))}
       </div>
     </div>

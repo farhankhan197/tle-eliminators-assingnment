@@ -1,4 +1,17 @@
-export async function getCodeforcesContests() {
+import { CodeforcesContest } from "./types";
+
+type CodeforcesContestResponce = {
+  id: number;
+  name: string;
+  type: string;
+  phase: string;
+  frozen: boolean;
+  durationSeconds: number;
+  startTimeSeconds: number;
+  relativeTimeSeconds: number;
+};
+
+export async function getCodeforcesContests(): Promise<CodeforcesContest[]> {
   const res = await fetch("https://codeforces.com/api/contest.list", {
     headers: {
       "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
@@ -6,10 +19,11 @@ export async function getCodeforcesContests() {
     },
   });
 
-  const data = await res.json();
-  const contests = data.result
-  .filter((c: any) => c.phase === "BEFORE")
-    .map((c: any) => ({
+  const { result }: { result: CodeforcesContestResponce[] } = await res.json();
+
+  const contests = result
+    .filter((c) => c.phase === "BEFORE")
+    .map((c) => ({
       name: c.name,
       url: `https://codeforces.com/contest/${c.id}`,
       platform: "codeforces",
@@ -17,5 +31,9 @@ export async function getCodeforcesContests() {
       duration: c.durationSeconds,
     }));
 
+  console.log(contests);
+
   return contests;
 }
+
+getCodeforcesContests();

@@ -1,11 +1,19 @@
 import * as cheerio from "cheerio";
 
-export async function getAtCoderContests() {
+export type AtCoderContest = {
+  title: string;
+  url: string;
+  platform: string;
+  startTime: number;
+  duration: number;
+};
+
+export async function getAtCoderContests(): Promise<AtCoderContest[]> {
   const response = await fetch("https://atcoder.jp/contests/");
   const html = await response.text();
   const $ = cheerio.load(html);
 
-  const contests: Array<Record<string, any>> = [];
+  const contests: AtCoderContest[] = [];
 
   // Parse upcoming contests
   $("#contest-table-upcoming tbody tr").each((_, el) => {
@@ -28,12 +36,17 @@ export async function getAtCoderContests() {
       .trim();
 
     contests.push({
-      name: title,
+      title,
       url: link,
       platform: "atcoder",
       startTime,
       duration,
     });
   });
+
+  console.log(contests);
+
   return contests;
 }
+
+getAtCoderContests();

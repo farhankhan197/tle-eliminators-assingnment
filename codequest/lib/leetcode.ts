@@ -1,12 +1,14 @@
 import axios from "axios";
+import { LeetcodeContest } from "./types";
 
-type Contest = {
-  platform: string;
-  name: string;
-  url: string;
+type LeetcodeContestResponce = {
+  title: string;
+  titleSlug: string;
+  startTime: number;
+  duration: number;
 };
 
-export async function getLeetCodeContests() {
+export async function getLeetCodeContests(): Promise<LeetcodeContest[]> {
   const query = `
     query {
       upcomingContests {
@@ -31,11 +33,11 @@ export async function getLeetCodeContests() {
       }
     );
 
-    const contests = response.data?.data?.upcomingContests || [];
+    const contests: LeetcodeContestResponce[] =
+      response.data?.data?.upcomingContests || [];
 
-
-    const returnValue = contests.map((c: any) => ({
-      platform: "LeetCode",
+    const returnValue = contests.map((c) => ({
+      platform: "leetcode",
       name: c.title,
       url: `https://leetcode.com/contest/${c.titleSlug}`,
       startTime: new Date(c.startTime * 1000).toISOString(),
