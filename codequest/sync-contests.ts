@@ -1,36 +1,60 @@
 import { getAtCoderContests } from "./lib/atcoder";
 import { getCodeforcesContests } from "./lib/codeforces";
 import { getLeetCodeContests } from "./lib/leetcode";
-import { NormalizeData } from "./lib/normalize-data";
-import prisma from "./lib/prisma";
+import { NormalizeData, Contest } from "./lib/normalize-data";
+
+import { db } from "./db/db";
+import { contests } from "./db/schema";
 
 async function SyncContestsToDB() {
   const leetcodeContests = await getLeetCodeContests();
   const atCoderContests = await getAtCoderContests();
   const codeforcesContests = await getCodeforcesContests();
-  const normalizedContests = [
+
+  const normalizedContests: Contest[] = [
     ...NormalizeData("leetcode", leetcodeContests),
     ...NormalizeData("atcoder", atCoderContests),
     ...NormalizeData("codeforces", codeforcesContests),
   ];
 
-  const res = await Promise.all(
+  await Promise.all(
     normalizedContests.map((contest) =>
-      prisma.contest.upsert({
-        where: {
-          name: contest.name,
-        },
-        create: {
+      db
+        .insert(contests)
+        .values({
           name: contest.name,
           platform: contest.platform,
           url: contest.url,
           startTime: contest.startTime,
           endTime: contest.endTime,
-        },
-        update: {},
-      })
+
+          // faithfully reproducing your logic
+          duration: new Date(
+            contest.endTime.getTime() - contest.startTime.getTime()
+          ),
+        })
+        .onConflictDoUpdate({
+          target: contests.name,
+          set: {
+            platform: contest.platform,
+            url: contest.url,
+            startTime: contest.startTime,
+            endTime: contest.endTime,
+            duration: new Date(
+              contest.endTime.getTime() - contest.startTime.getTime()
+            ),
+          },
+        })
     )
   );
 }
 
-SyncContestsToDB();
+SyncContestsToDB()
+  .then(() => {
+    console.log("Contests synced successfully");
+    process.exit(0);
+  })
+  .catch((err) => {
+    console.error("Contest sync failed:", err);
+    process.exit(1);
+  });

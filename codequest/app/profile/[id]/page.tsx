@@ -1,4 +1,4 @@
-import prisma from "@/lib/prisma";
+import prisma from "@/db/db";
 
 export default async function Profile({
   params,

@@ -1,7 +1,7 @@
 import { AtCoderContest } from "./atcoder";
 import { CodeforcesContest, LeetcodeContest, Platform } from "./types";
 
-type Contest = {
+export type Contest = {
   platform: "codeforces" | "atcoder" | "leetcode";
   name: string;
   url: string;
@@ -10,12 +10,12 @@ type Contest = {
 };
 
 export function NormalizeData(platform: Platform, data: any): Contest[] {
-  const d = [];
+  const d: Contest[][] = [];
   if (platform == "leetcode") {
     const leetcode = data.map((c: LeetcodeContest) => {
       const start = c.startTime ? new Date(c.startTime) : new Date(NaN);
       const end = c.durationMinutes
-        ? new Date(new Date(start).getTime() + c.durationMinutes * 1000)
+        ? new Date(new Date(start).getTime() + Number(c.durationMinutes) * 1000)
         : new Date(NaN);
       return {
         platform: "leetcode",
@@ -33,7 +33,7 @@ export function NormalizeData(platform: Platform, data: any): Contest[] {
       data.map((c: AtCoderContest) => {
         const start = c.startTime ? new Date(c.startTime) : new Date(NaN);
         const end = c.duration
-          ? new Date(new Date(start).getTime() + c.duration * 1000)
+          ? new Date(new Date(start).getTime() + Number(c.duration) * 1000)
           : new Date(NaN);
 
         return {
@@ -51,7 +51,7 @@ export function NormalizeData(platform: Platform, data: any): Contest[] {
       data.map((c: CodeforcesContest) => {
         const start = c.startTime ? new Date(c.startTime) : new Date(NaN);
         const end = c.duration
-          ? new Date(new Date(start).getTime() + c.duration * 1000)
+          ? new Date(new Date(start).getTime() + Number(c.duration) * 1000)
           : new Date(NaN);
 
         return {
@@ -64,7 +64,7 @@ export function NormalizeData(platform: Platform, data: any): Contest[] {
       })
     );
   }
-  return d[0];
+  return d[0] || [];
 }
 
 // toLocaleDateString("en-US", {
