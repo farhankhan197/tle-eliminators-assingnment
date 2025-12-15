@@ -1,4 +1,4 @@
-import prisma from "@/db/db";
+import { db } from "@/db/db";
 
 export default async function Profile({
   params,
@@ -7,10 +7,8 @@ export default async function Profile({
 }) {
   const { id } = await params;
 
-  const user = await prisma.user.findUnique({
-    where: {
-      id: id,
-    },
+  const user = await db.query.user.findFirst({
+    where: (user, { eq }) => eq(user.id, id),
   });
 
   if (!user) {
