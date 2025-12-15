@@ -146,7 +146,7 @@ export default function Page() {
                   alt={session?.user.id || "avatar"}
                   height={100}
                   width={100}
-                  className="rounded-xl size-10"
+                  className="rounded-full size-10"
                 />
               ) : (
                 <Link href={"/auth/login"} className="">
@@ -175,7 +175,7 @@ export default function Page() {
         </Popover>
       </div>
 
-      <div className="flex flex-col md:flex-row gap-3 mb-6">
+      <div className="mt-4 flex flex-col md:flex-row gap-3 mb-6">
         <input
           placeholder="Search contests..."
           value={search}
